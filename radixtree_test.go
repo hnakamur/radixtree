@@ -52,6 +52,175 @@ func TestGet(t *testing.T) {
 	}
 }
 
+func TestSet(t *testing.T) {
+	testCases := []struct {
+		tree   Tree
+		key    []byte
+		value  []byte
+		result string
+	}{
+		{
+			tree:  Tree{},
+			key:   []byte("tea"),
+			value: []byte("1"),
+			result: ".\n" +
+				"`-- \"tea\" \"1\"\n",
+		},
+		{
+			tree: Tree{
+				root: node{
+					children: []*node{
+						&node{
+							label: []byte("tea"),
+							value: []byte("1"),
+						},
+					},
+				},
+			},
+			key:   []byte("coffee"),
+			value: []byte("2"),
+			result: ".\n" +
+				"|-- \"coffee\" \"2\"\n" +
+				"`-- \"tea\" \"1\"\n",
+		},
+		{
+			tree: Tree{
+				root: node{
+					children: []*node{
+						&node{
+							label: []byte("tea"),
+							value: []byte("1"),
+						},
+					},
+				},
+			},
+			key:   []byte("water"),
+			value: []byte("2"),
+			result: ".\n" +
+				"|-- \"tea\" \"1\"\n" +
+				"`-- \"water\" \"2\"\n",
+		},
+		{
+			tree: Tree{
+				root: node{
+					children: []*node{
+						&node{
+							label: []byte("tea"),
+							value: []byte("1"),
+						},
+					},
+				},
+			},
+			key:   []byte("tea"),
+			value: []byte("2"),
+			result: ".\n" +
+				"`-- \"tea\" \"2\"\n",
+		},
+		{
+			tree: Tree{
+				root: node{
+					children: []*node{
+						&node{
+							label: []byte("tea"),
+							value: []byte("1"),
+						},
+					},
+				},
+			},
+			key:   []byte("team"),
+			value: []byte("2"),
+			result: ".\n" +
+				"`-- \"tea\" \"1\"\n" +
+				"   `-- \"m\" \"2\"\n",
+		},
+		{
+			tree: Tree{
+				root: node{
+					children: []*node{
+						&node{
+							label: []byte("team"),
+							value: []byte("1"),
+						},
+					},
+				},
+			},
+			key:   []byte("tea"),
+			value: []byte("2"),
+			result: ".\n" +
+				"`-- \"tea\" \"2\"\n" +
+				"   `-- \"m\" \"1\"\n",
+		},
+		{
+			tree: Tree{
+				root: node{
+					children: []*node{
+						&node{
+							label: []byte("team"),
+							value: []byte("1"),
+						},
+					},
+				},
+			},
+			key:   []byte("tear"),
+			value: []byte("2"),
+			result: ".\n" +
+				"`-- \"tea\"\n" +
+				"   |-- \"m\" \"1\"\n" +
+				"   `-- \"r\" \"2\"\n",
+		},
+		{
+			tree: Tree{
+				root: node{
+					children: []*node{
+						&node{
+							label: []byte("tear"),
+							value: []byte("1"),
+						},
+					},
+				},
+			},
+			key:   []byte("team"),
+			value: []byte("2"),
+			result: ".\n" +
+				"`-- \"tea\"\n" +
+				"   |-- \"m\" \"2\"\n" +
+				"   `-- \"r\" \"1\"\n",
+		},
+		{
+			tree: Tree{
+				root: node{
+					children: []*node{
+						&node{
+							label: []byte("team"),
+							value: []byte("1"),
+						},
+						&node{
+							label: []byte("water"),
+							value: []byte("2"),
+						},
+					},
+				},
+			},
+			key:   []byte("tear"),
+			value: []byte("3"),
+			result: ".\n" +
+				"|-- \"tea\"\n" +
+				"|  |-- \"m\" \"1\"\n" +
+				"|  `-- \"r\" \"3\"\n" +
+				"`-- \"water\" \"2\"\n",
+		},
+	}
+	for _, c := range testCases {
+		c.tree.Set(c.key, c.value)
+		var buf bytes.Buffer
+		c.tree.PrettyPrint(&buf)
+		got := buf.String()
+		if got != c.result {
+			t.Errorf("result unmatch, got=\n%s, want=\n%s", got, c.result)
+		}
+	}
+}
+
 func TestPrettyPrint(t *testing.T) {
 	tr := Tree{root: node{
 		value: []byte{'0'},

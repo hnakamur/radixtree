@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"fmt"
 	"io"
-	"log"
 	"sort"
 	"strconv"
 )
@@ -109,8 +108,74 @@ func (t *Tree) Get(key []byte) (value []byte, exists bool) {
 }
 
 func (t *Tree) Set(key, value []byte) {
-	p := t.pathForPrefix(key)
-	log.Printf("Set, key=%s, p=%+v", string(key), p)
+	n := &t.root
+	prefix := key
+	for len(prefix) > 0 {
+		f := func(i int) bool {
+			label := n.children[i].label
+			if commonPrefixLength(label, prefix) > 0 {
+				return true
+			}
+			return bytes.Compare(label, prefix) >= 0
+		}
+		i := sort.Search(len(n.children), f)
+		if i == len(n.children) {
+			n.children = append(n.children, &node{label: prefix, value: value})
+			return
+		}
+		child := n.children[i]
+		childLabel := child.label
+		l := commonPrefixLength(prefix, childLabel)
+		if l == 0 {
+			// Insert new node at i'th children
+			n.children = append(n.children, nil)
+			copy(n.children[i+1:], n.children[i:])
+			n.children[i] = &node{label: prefix, value: value}
+			return
+		}
+		if l < len(prefix) {
+			if l < len(childLabel) {
+				myRestLabel := prefix[l:]
+				child.label = childLabel[l:]
+				var children []*node
+				if bytes.Compare(myRestLabel, child.label) < 0 {
+					children = []*node{&node{label: myRestLabel, value: value}, child}
+				} else {
+					children = []*node{child, &node{label: myRestLabel, value: value}}
+				}
+				n.children[i] = &node{
+					label:    prefix[:l],
+					children: children,
+				}
+				return
+			}
+		} else { // l == len(prefix)
+			if l < len(childLabel) {
+				child.label = childLabel[l:]
+				n.children[i] = &node{
+					label:    prefix,
+					value:    value,
+					children: []*node{child},
+				}
+			} else { // l == len(childLabel)
+				n.children[i].value = value
+			}
+			return
+		}
+		prefix = prefix[len(childLabel):]
+		n = child
+	}
+}
+
+func childrenString(children []*node) string {
+	var buf []byte
+	for i, child := range children {
+		if i > 0 {
+			buf = append(buf, ',')
+		}
+		buf = append(buf, fmt.Sprintf("{label:%s, value=%s}", child.label, child.value)...)
+	}
+	return string(buf)
 }
 
 func (t *Tree) pathForPrefix(prefix []byte) path {
@@ -118,12 +183,13 @@ func (t *Tree) pathForPrefix(prefix []byte) path {
 	p := path{tree: t, node: n}
 	for len(prefix) > 0 {
 		f := func(i int) bool {
-			return bytes.Compare(n.children[i].label, prefix) >= 0
+			label := n.children[i].label
+			if commonPrefixLength(label, prefix) > 0 {
+				return true
+			}
+			return bytes.Compare(label, prefix) >= 0
 		}
 		i := sort.Search(len(n.children), f)
-		if i > 0 && commonPrefixLength(prefix, n.children[i-1].label) > 0 {
-			i--
-		}
 		p.edges = append(p.edges, edge{parent: n, childIndex: i})
 		if i < len(n.children) && bytes.HasPrefix(prefix, n.children[i].label) {
 			p.node = n.children[i]
