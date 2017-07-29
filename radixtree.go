@@ -14,24 +14,22 @@ type Tree struct {
 
 type node struct {
 	label []byte
-	// To save memory, we don't a flag field like hasValue.
-	// If this node does not have value, value is nil.
-	// So you cannot use nil as a value.
-	// Note you can use an empty byte slice instead.
-	value []byte
+	value interface{}
 
 	children []*node
 }
 
+var noValue = &struct{}{}
+
 func (n *node) hasValue() bool {
-	return n.value != nil
+	return n.value != noValue
 }
 
 func (t Tree) PrettyPrint(w io.Writer) {
 	buf := make([]byte, 0, 80)
 	buf = append(buf[:0], '.')
 	if t.root.hasValue() {
-		buf = append(buf, fmt.Sprintf(" %q", string(t.root.value))...)
+		buf = append(buf, fmt.Sprintf(" %+v", t.root.value)...)
 	}
 	buf = append(buf, '\n')
 	w.Write(buf)
@@ -49,8 +47,7 @@ func (t Tree) PrettyPrint(w io.Writer) {
 			buf = append(buf, "-- "...)
 			buf = strconv.AppendQuote(buf, string(n.label))
 			if n.hasValue() {
-				buf = append(buf, ' ')
-				buf = strconv.AppendQuote(buf, string(n.value))
+				buf = append(buf, fmt.Sprintf(" %+v", n.value)...)
 			}
 			buf = append(buf, '\n')
 			w.Write(buf)
@@ -110,7 +107,7 @@ func (p path) nodeAtDepth(depth int) *node {
 	return p.edges[depth-1].child()
 }
 
-func (t *Tree) Get(key []byte) (value []byte, exists bool) {
+func (t *Tree) Get(key []byte) (value interface{}, exists bool) {
 	prefix := key
 	n := &t.root
 	for len(prefix) > 0 {
@@ -124,7 +121,7 @@ func (t *Tree) Get(key []byte) (value []byte, exists bool) {
 	return n.value, true
 }
 
-func (t *Tree) Set(key, value []byte) {
+func (t *Tree) Set(key []byte, value interface{}) {
 	n := &t.root
 	prefix := key
 	for len(prefix) > 0 {
@@ -155,6 +152,7 @@ func (t *Tree) Set(key, value []byte) {
 				}
 				n.children[i] = &node{
 					label:    prefix[:l],
+					value:    noValue,
 					children: children,
 				}
 				return
@@ -211,10 +209,10 @@ func (t *Tree) Delete(key []byte) (deleted bool) {
 		child.label = append(n.label, child.label...)
 		parent.children[i] = child
 	} else { // childCount > 1
-		if n.value == nil {
+		if !n.hasValue() {
 			return false
 		}
-		n.value = nil
+		n.value = noValue
 	}
 	return true
 }

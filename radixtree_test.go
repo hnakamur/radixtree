@@ -11,6 +11,7 @@ func TestGet(t *testing.T) {
 		children: []*node{
 			&node{
 				label: []byte("te"),
+				value: noValue,
 				children: []*node{
 					&node{
 						label: []byte("am"),
@@ -42,12 +43,17 @@ func TestGet(t *testing.T) {
 		{[]byte("testable"), nil, false},
 		{[]byte("water"), []byte{'3'}, true},
 	}
-	for _, c := range testCases {
+	for i, c := range testCases {
 		value, exists := tr.Get(c.key)
 		if exists != c.exists {
-			t.Errorf("exists unmatch, got=%v, want=%v", exists, c.exists)
-		} else if !bytes.Equal(value, c.value) {
-			t.Errorf("value unmatch, got=%s, want=%s", string(value), string(c.value))
+			t.Errorf("exists unmatch, caseIndex=%d, got=%v, want=%v", i, exists, c.exists)
+		}
+		if value == nil {
+			if c.value != nil {
+				t.Errorf("value unmatch, caseIndex=%d, got=%v, want=%s", i, value, string(c.value))
+			}
+		} else if !bytes.Equal(value.([]byte), c.value) {
+			t.Errorf("value unmatch, caseIndex=%d, got=%v, want=%s", i, value, string(c.value))
 		}
 	}
 }
@@ -56,170 +62,183 @@ func TestSet(t *testing.T) {
 	testCases := []struct {
 		tree   Tree
 		key    []byte
-		value  []byte
+		value  interface{}
 		result string
 	}{
 		{
-			tree:  Tree{},
+			tree: Tree{
+				root: node{
+					value: noValue,
+				},
+			},
 			key:   []byte("tea"),
-			value: []byte("1"),
+			value: 1,
 			result: ".\n" +
-				"`-- \"tea\" \"1\"\n",
+				"`-- \"tea\" 1\n",
 		},
 		{
 			tree: Tree{
 				root: node{
+					value: noValue,
 					children: []*node{
 						&node{
 							label: []byte("tea"),
-							value: []byte("1"),
+							value: 1,
 						},
 					},
 				},
 			},
 			key:   []byte("coffee"),
-			value: []byte("2"),
+			value: 2,
 			result: ".\n" +
-				"|-- \"coffee\" \"2\"\n" +
-				"`-- \"tea\" \"1\"\n",
+				"|-- \"coffee\" 2\n" +
+				"`-- \"tea\" 1\n",
 		},
 		{
 			tree: Tree{
 				root: node{
+					value: noValue,
 					children: []*node{
 						&node{
 							label: []byte("tea"),
-							value: []byte("1"),
+							value: 1,
 						},
 					},
 				},
 			},
 			key:   []byte("water"),
-			value: []byte("2"),
+			value: 2,
 			result: ".\n" +
-				"|-- \"tea\" \"1\"\n" +
-				"`-- \"water\" \"2\"\n",
+				"|-- \"tea\" 1\n" +
+				"`-- \"water\" 2\n",
 		},
 		{
 			tree: Tree{
 				root: node{
+					value: noValue,
 					children: []*node{
 						&node{
 							label: []byte("tea"),
-							value: []byte("1"),
+							value: 1,
 						},
 					},
 				},
 			},
 			key:   []byte("tea"),
-			value: []byte("2"),
+			value: 2,
 			result: ".\n" +
-				"`-- \"tea\" \"2\"\n",
+				"`-- \"tea\" 2\n",
 		},
 		{
 			tree: Tree{
 				root: node{
+					value: noValue,
 					children: []*node{
 						&node{
 							label: []byte("tea"),
-							value: []byte("1"),
+							value: 1,
 						},
 					},
 				},
 			},
 			key:   []byte("team"),
-			value: []byte("2"),
+			value: 2,
 			result: ".\n" +
-				"`-- \"tea\" \"1\"\n" +
-				"   `-- \"m\" \"2\"\n",
+				"`-- \"tea\" 1\n" +
+				"   `-- \"m\" 2\n",
 		},
 		{
 			tree: Tree{
 				root: node{
+					value: noValue,
 					children: []*node{
 						&node{
 							label: []byte("team"),
-							value: []byte("1"),
+							value: 1,
 						},
 					},
 				},
 			},
 			key:   []byte("tea"),
-			value: []byte("2"),
+			value: 2,
 			result: ".\n" +
-				"`-- \"tea\" \"2\"\n" +
-				"   `-- \"m\" \"1\"\n",
+				"`-- \"tea\" 2\n" +
+				"   `-- \"m\" 1\n",
 		},
 		{
 			tree: Tree{
 				root: node{
+					value: noValue,
 					children: []*node{
 						&node{
 							label: []byte("team"),
-							value: []byte("1"),
+							value: 1,
 						},
 					},
 				},
 			},
 			key:   []byte("tear"),
-			value: []byte("2"),
+			value: 2,
 			result: ".\n" +
 				"`-- \"tea\"\n" +
-				"   |-- \"m\" \"1\"\n" +
-				"   `-- \"r\" \"2\"\n",
+				"   |-- \"m\" 1\n" +
+				"   `-- \"r\" 2\n",
 		},
 		{
 			tree: Tree{
 				root: node{
+					value: noValue,
 					children: []*node{
 						&node{
 							label: []byte("tear"),
-							value: []byte("1"),
+							value: 1,
 						},
 					},
 				},
 			},
 			key:   []byte("team"),
-			value: []byte("2"),
+			value: 2,
 			result: ".\n" +
 				"`-- \"tea\"\n" +
-				"   |-- \"m\" \"2\"\n" +
-				"   `-- \"r\" \"1\"\n",
+				"   |-- \"m\" 2\n" +
+				"   `-- \"r\" 1\n",
 		},
 		{
 			tree: Tree{
 				root: node{
+					value: noValue,
 					children: []*node{
 						&node{
 							label: []byte("team"),
-							value: []byte("1"),
+							value: 1,
 						},
 						&node{
 							label: []byte("water"),
-							value: []byte("2"),
+							value: 2,
 						},
 					},
 				},
 			},
 			key:   []byte("tear"),
-			value: []byte("3"),
+			value: 3,
 			result: ".\n" +
 				"|-- \"tea\"\n" +
-				"|  |-- \"m\" \"1\"\n" +
-				"|  `-- \"r\" \"3\"\n" +
-				"`-- \"water\" \"2\"\n",
+				"|  |-- \"m\" 1\n" +
+				"|  `-- \"r\" 3\n" +
+				"`-- \"water\" 2\n",
 		},
 		{
 			tree: Tree{
 				root: node{
+					value: noValue,
 					children: []*node{
 						&node{
 							label: []byte("tea"),
-							value: []byte("1"),
+							value: 1,
 							children: []*node{
 								&node{
 									label: []byte("m"),
-									value: []byte("2"),
+									value: 2,
 								},
 							},
 						},
@@ -227,27 +246,28 @@ func TestSet(t *testing.T) {
 				},
 			},
 			key:   []byte("teamwork"),
-			value: []byte("3"),
+			value: 3,
 			result: ".\n" +
-				"`-- \"tea\" \"1\"\n" +
-				"   `-- \"m\" \"2\"\n" +
-				"      `-- \"work\" \"3\"\n",
+				"`-- \"tea\" 1\n" +
+				"   `-- \"m\" 2\n" +
+				"      `-- \"work\" 3\n",
 		},
 		{
 			tree: Tree{
 				root: node{
+					value: noValue,
 					children: []*node{
 						&node{
 							label: []byte("tea"),
-							value: []byte("1"),
+							value: 1,
 							children: []*node{
 								&node{
 									label: []byte("m"),
-									value: []byte("2"),
+									value: 2,
 									children: []*node{
 										&node{
 											label: []byte("work"),
-											value: []byte("3"),
+											value: 3,
 										},
 									},
 								},
@@ -257,12 +277,12 @@ func TestSet(t *testing.T) {
 				},
 			},
 			key:   []byte("teammate"),
-			value: []byte("4"),
+			value: 4,
 			result: ".\n" +
-				"`-- \"tea\" \"1\"\n" +
-				"   `-- \"m\" \"2\"\n" +
-				"      |-- \"mate\" \"4\"\n" +
-				"      `-- \"work\" \"3\"\n",
+				"`-- \"tea\" 1\n" +
+				"   `-- \"m\" 2\n" +
+				"      |-- \"mate\" 4\n" +
+				"      `-- \"work\" 3\n",
 		},
 	}
 	for i, c := range testCases {
@@ -284,7 +304,11 @@ func TestDelete(t *testing.T) {
 		result  string
 	}{
 		{
-			tree:    Tree{},
+			tree: Tree{
+				root: node{
+					value: noValue,
+				},
+			},
 			key:     []byte("tea"),
 			deleted: false,
 			result:  ".\n",
@@ -292,10 +316,11 @@ func TestDelete(t *testing.T) {
 		{
 			tree: Tree{
 				root: node{
+					value: noValue,
 					children: []*node{
 						&node{
 							label: []byte("tea"),
-							value: []byte{'1'},
+							value: 1,
 						},
 					},
 				},
@@ -303,15 +328,16 @@ func TestDelete(t *testing.T) {
 			key:     []byte("water"),
 			deleted: false,
 			result: ".\n" +
-				"`-- \"tea\" \"1\"\n",
+				"`-- \"tea\" 1\n",
 		},
 		{
 			tree: Tree{
 				root: node{
+					value: noValue,
 					children: []*node{
 						&node{
 							label: []byte("tea"),
-							value: []byte{'1'},
+							value: 1,
 						},
 					},
 				},
@@ -323,14 +349,15 @@ func TestDelete(t *testing.T) {
 		{
 			tree: Tree{
 				root: node{
+					value: noValue,
 					children: []*node{
 						&node{
 							label: []byte("tea"),
-							value: []byte{'1'},
+							value: 1,
 						},
 						&node{
 							label: []byte("water"),
-							value: []byte{'2'},
+							value: 2,
 						},
 					},
 				},
@@ -338,19 +365,20 @@ func TestDelete(t *testing.T) {
 			key:     []byte("tea"),
 			deleted: true,
 			result: ".\n" +
-				"`-- \"water\" \"2\"\n",
+				"`-- \"water\" 2\n",
 		},
 		{
 			tree: Tree{
 				root: node{
+					value: noValue,
 					children: []*node{
 						&node{
 							label: []byte("tea"),
-							value: []byte{'1'},
+							value: 1,
 							children: []*node{
 								&node{
 									label: []byte("m"),
-									value: []byte{'2'},
+									value: 2,
 								},
 							},
 						},
@@ -360,19 +388,20 @@ func TestDelete(t *testing.T) {
 			key:     []byte("team"),
 			deleted: true,
 			result: ".\n" +
-				"`-- \"tea\" \"1\"\n",
+				"`-- \"tea\" 1\n",
 		},
 		{
 			tree: Tree{
 				root: node{
+					value: noValue,
 					children: []*node{
 						&node{
 							label: []byte("tea"),
-							value: []byte{'1'},
+							value: 1,
 							children: []*node{
 								&node{
 									label: []byte("m"),
-									value: []byte{'2'},
+									value: 2,
 								},
 							},
 						},
@@ -382,23 +411,24 @@ func TestDelete(t *testing.T) {
 			key:     []byte("tea"),
 			deleted: true,
 			result: ".\n" +
-				"`-- \"team\" \"2\"\n",
+				"`-- \"team\" 2\n",
 		},
 		{
 			tree: Tree{
 				root: node{
+					value: noValue,
 					children: []*node{
 						&node{
 							label: []byte("tea"),
-							value: []byte{'1'},
+							value: 1,
 							children: []*node{
 								&node{
 									label: []byte("m"),
-									value: []byte{'2'},
+									value: 2,
 								},
 								&node{
 									label: []byte("r"),
-									value: []byte{'3'},
+									value: 3,
 								},
 							},
 						},
@@ -409,24 +439,25 @@ func TestDelete(t *testing.T) {
 			deleted: true,
 			result: ".\n" +
 				"`-- \"tea\"\n" +
-				"   |-- \"m\" \"2\"\n" +
-				"   `-- \"r\" \"3\"\n",
+				"   |-- \"m\" 2\n" +
+				"   `-- \"r\" 3\n",
 		},
 		{
 			tree: Tree{
 				root: node{
+					value: noValue,
 					children: []*node{
 						&node{
 							label: []byte("tea"),
-							value: []byte{'1'},
+							value: 1,
 							children: []*node{
 								&node{
 									label: []byte("m"),
-									value: []byte{'2'},
+									value: 2,
 								},
 								&node{
 									label: []byte("r"),
-									value: []byte{'3'},
+									value: 3,
 								},
 							},
 						},
@@ -436,23 +467,25 @@ func TestDelete(t *testing.T) {
 			key:     []byte("tear"),
 			deleted: true,
 			result: ".\n" +
-				"`-- \"tea\" \"1\"\n" +
-				"   `-- \"m\" \"2\"\n",
+				"`-- \"tea\" 1\n" +
+				"   `-- \"m\" 2\n",
 		},
 		{
 			tree: Tree{
 				root: node{
+					value: noValue,
 					children: []*node{
 						&node{
 							label: []byte("tea"),
+							value: noValue,
 							children: []*node{
 								&node{
 									label: []byte("m"),
-									value: []byte{'2'},
+									value: 1,
 								},
 								&node{
 									label: []byte("r"),
-									value: []byte{'3'},
+									value: 2,
 								},
 							},
 						},
@@ -463,8 +496,8 @@ func TestDelete(t *testing.T) {
 			deleted: false,
 			result: ".\n" +
 				"`-- \"tea\"\n" +
-				"   |-- \"m\" \"2\"\n" +
-				"   `-- \"r\" \"3\"\n",
+				"   |-- \"m\" 1\n" +
+				"   `-- \"r\" 2\n",
 		},
 	}
 	for i, c := range testCases {
@@ -487,61 +520,67 @@ func TestPrettyPrint(t *testing.T) {
 		want string
 	}{
 		{
-			Tree{},
+			Tree{
+				root: node{
+					value: noValue,
+				},
+			},
 			".\n",
 		},
 		{
 			Tree{
 				root: node{
-					value: []byte{'0'},
+					value: "0",
 				},
 			},
-			". \"0\"\n",
+			". 0\n",
 		},
 		{
 			Tree{
 				root: node{
+					value: noValue,
 					children: []*node{
 						&node{
 							label: []byte("tea"),
-							value: []byte{'1'},
+							value: "1",
 						},
 					},
 				},
 			},
 			".\n" +
-				"`-- \"tea\" \"1\"\n",
+				"`-- \"tea\" 1\n",
 		},
 		{
 			Tree{
 				root: node{
-					value: []byte{'0'},
+					value: 0,
 					children: []*node{
 						&node{
 							label: []byte("te"),
+							value: noValue,
 							children: []*node{
 								&node{
 									label: []byte("am"),
-									value: []byte{'1'},
+									value: 1,
 								},
 								&node{
 									label: []byte("st"),
-									value: []byte{'2'},
+									value: 2,
 								},
 							},
 						},
 						&node{
 							label: []byte("water"),
-							value: []byte{'3'},
+							value: 3,
 						},
 					},
 				},
 			},
-			". \"0\"\n" +
+			". 0\n" +
 				"|-- \"te\"\n" +
-				"|  |-- \"am\" \"1\"\n" +
-				"|  `-- \"st\" \"2\"\n" +
-				"`-- \"water\" \"3\"\n",
+				"|  |-- \"am\" 1\n" +
+				"|  `-- \"st\" 2\n" +
+				"`-- \"water\" 3\n",
 		},
 	}
 	for i, c := range testCases {
