@@ -265,13 +265,191 @@ func TestSet(t *testing.T) {
 				"      `-- \"work\" \"3\"\n",
 		},
 	}
-	for _, c := range testCases {
+	for i, c := range testCases {
 		c.tree.Set(c.key, c.value)
 		var buf bytes.Buffer
 		c.tree.PrettyPrint(&buf)
 		got := buf.String()
 		if got != c.result {
-			t.Errorf("result unmatch, got=\n%s, want=\n%s", got, c.result)
+			t.Errorf("result unmatch, caseIndex=%d, got=\n%s, want=\n%s", i, got, c.result)
+		}
+	}
+}
+
+func TestDelete(t *testing.T) {
+	testCases := []struct {
+		tree    Tree
+		key     []byte
+		deleted bool
+		result  string
+	}{
+		{
+			tree:    Tree{},
+			key:     []byte("tea"),
+			deleted: false,
+			result:  ".\n",
+		},
+		{
+			tree: Tree{
+				root: node{
+					children: []*node{
+						&node{
+							label: []byte("tea"),
+							value: []byte{'1'},
+						},
+					},
+				},
+			},
+			key:     []byte("water"),
+			deleted: false,
+			result: ".\n" +
+				"`-- \"tea\" \"1\"\n",
+		},
+		{
+			tree: Tree{
+				root: node{
+					children: []*node{
+						&node{
+							label: []byte("tea"),
+							value: []byte{'1'},
+						},
+					},
+				},
+			},
+			key:     []byte("tea"),
+			deleted: true,
+			result:  ".\n",
+		},
+		{
+			tree: Tree{
+				root: node{
+					children: []*node{
+						&node{
+							label: []byte("tea"),
+							value: []byte{'1'},
+						},
+						&node{
+							label: []byte("water"),
+							value: []byte{'2'},
+						},
+					},
+				},
+			},
+			key:     []byte("tea"),
+			deleted: true,
+			result: ".\n" +
+				"`-- \"water\" \"2\"\n",
+		},
+		{
+			tree: Tree{
+				root: node{
+					children: []*node{
+						&node{
+							label: []byte("tea"),
+							value: []byte{'1'},
+							children: []*node{
+								&node{
+									label: []byte("m"),
+									value: []byte{'2'},
+								},
+							},
+						},
+					},
+				},
+			},
+			key:     []byte("team"),
+			deleted: true,
+			result: ".\n" +
+				"`-- \"tea\" \"1\"\n",
+		},
+		{
+			tree: Tree{
+				root: node{
+					children: []*node{
+						&node{
+							label: []byte("tea"),
+							value: []byte{'1'},
+							children: []*node{
+								&node{
+									label: []byte("m"),
+									value: []byte{'2'},
+								},
+							},
+						},
+					},
+				},
+			},
+			key:     []byte("tea"),
+			deleted: true,
+			result: ".\n" +
+				"`-- \"team\" \"2\"\n",
+		},
+		{
+			tree: Tree{
+				root: node{
+					children: []*node{
+						&node{
+							label: []byte("tea"),
+							value: []byte{'1'},
+							children: []*node{
+								&node{
+									label: []byte("m"),
+									value: []byte{'2'},
+								},
+								&node{
+									label: []byte("r"),
+									value: []byte{'3'},
+								},
+							},
+						},
+					},
+				},
+			},
+			key:     []byte("tea"),
+			deleted: true,
+			result: ".\n" +
+				"`-- \"tea\"\n" +
+				"   |-- \"m\" \"2\"\n" +
+				"   `-- \"r\" \"3\"\n",
+		},
+		{
+			tree: Tree{
+				root: node{
+					children: []*node{
+						&node{
+							label: []byte("tea"),
+							value: []byte{'1'},
+							children: []*node{
+								&node{
+									label: []byte("m"),
+									value: []byte{'2'},
+								},
+								&node{
+									label: []byte("r"),
+									value: []byte{'3'},
+								},
+							},
+						},
+					},
+				},
+			},
+			key:     []byte("tear"),
+			deleted: true,
+			result: ".\n" +
+				"`-- \"tea\" \"1\"\n" +
+				"   `-- \"m\" \"2\"\n",
+		},
+	}
+	for i, c := range testCases {
+		deleted := c.tree.Delete(c.key)
+		if deleted != c.deleted {
+			t.Errorf("deleted unmatch, caseIndex=%d, got=%v, want=%v", i, deleted, c.deleted)
+		}
+		var buf bytes.Buffer
+		c.tree.PrettyPrint(&buf)
+		got := buf.String()
+		if got != c.result {
+			t.Errorf("result unmatch, caseIndex=%d, got=\n%s, want=\n%s", i, got, c.result)
 		}
 	}
 }
@@ -339,12 +517,12 @@ func TestPrettyPrint(t *testing.T) {
 				"`-- \"water\" \"3\"\n",
 		},
 	}
-	for _, c := range testCases {
+	for i, c := range testCases {
 		var buf bytes.Buffer
 		c.tree.PrettyPrint(&buf)
 		got := buf.String()
 		if got != c.want {
-			t.Errorf("unmatch result, got=\n%s, want=\n%s", got, c.want)
+			t.Errorf("unmatch result, caseIndex=%d, got=\n%s, want=\n%s", i, got, c.want)
 		}
 	}
 }

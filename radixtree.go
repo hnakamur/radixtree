@@ -177,6 +177,35 @@ func (t *Tree) Set(key, value []byte) {
 	}
 }
 
+func (t *Tree) Delete(key []byte) (deleted bool) {
+	p := t.pathForPrefix(key)
+	if p.node == nil {
+		return false
+	}
+
+	childCount := len(p.node.children)
+	if childCount == 0 {
+		e := p.edges[len(p.edges)-1]
+		parent := e.parent
+		if len(parent.children) > 1 {
+			j := e.childIndex
+			parent.children = append(parent.children[:j], parent.children[j+1:]...)
+		} else {
+			parent.children = nil
+		}
+	} else if childCount == 1 {
+		child := p.node.children[0]
+		child.label = append(p.node.label, child.label...)
+		e := p.edges[len(p.edges)-1]
+		parent := e.parent
+		j := e.childIndex
+		parent.children[j] = child
+	} else { // childCount > 1
+		p.node.value = nil
+	}
+	return true
+}
+
 func (t *Tree) pathForPrefix(prefix []byte) path {
 	n := &t.root
 	p := path{tree: t, node: n}
