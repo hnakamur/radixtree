@@ -177,17 +177,6 @@ func (t *Tree) Set(key, value []byte) {
 	}
 }
 
-func childrenString(children []*node) string {
-	var buf []byte
-	for i, child := range children {
-		if i > 0 {
-			buf = append(buf, ',')
-		}
-		buf = append(buf, fmt.Sprintf("{label:%s, value=%s}", child.label, child.value)...)
-	}
-	return string(buf)
-}
-
 func (t *Tree) pathForPrefix(prefix []byte) path {
 	n := &t.root
 	p := path{tree: t, node: n}

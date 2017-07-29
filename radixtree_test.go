@@ -209,6 +209,61 @@ func TestSet(t *testing.T) {
 				"|  `-- \"r\" \"3\"\n" +
 				"`-- \"water\" \"2\"\n",
 		},
+		{
+			tree: Tree{
+				root: node{
+					children: []*node{
+						&node{
+							label: []byte("tea"),
+							value: []byte("1"),
+							children: []*node{
+								&node{
+									label: []byte("m"),
+									value: []byte("2"),
+								},
+							},
+						},
+					},
+				},
+			},
+			key:   []byte("teamwork"),
+			value: []byte("3"),
+			result: ".\n" +
+				"`-- \"tea\" \"1\"\n" +
+				"   `-- \"m\" \"2\"\n" +
+				"      `-- \"work\" \"3\"\n",
+		},
+		{
+			tree: Tree{
+				root: node{
+					children: []*node{
+						&node{
+							label: []byte("tea"),
+							value: []byte("1"),
+							children: []*node{
+								&node{
+									label: []byte("m"),
+									value: []byte("2"),
+									children: []*node{
+										&node{
+											label: []byte("work"),
+											value: []byte("3"),
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			key:   []byte("teammate"),
+			value: []byte("4"),
+			result: ".\n" +
+				"`-- \"tea\" \"1\"\n" +
+				"   `-- \"m\" \"2\"\n" +
+				"      |-- \"mate\" \"4\"\n" +
+				"      `-- \"work\" \"3\"\n",
+		},
 	}
 	for _, c := range testCases {
 		c.tree.Set(c.key, c.value)
