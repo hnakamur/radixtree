@@ -100,11 +100,24 @@ func (p path) nodeAtDepth(depth int) *node {
 }
 
 func (t *Tree) Get(key []byte) (value []byte, exists bool) {
-	p := t.pathForPrefix(key)
-	if p.node == nil {
-		return nil, false
+	prefix := key
+	n := &t.root
+	for len(prefix) > 0 {
+		f := func(i int) bool {
+			label := n.children[i].label
+			if commonPrefixLength(label, prefix) > 0 {
+				return true
+			}
+			return bytes.Compare(label, prefix) >= 0
+		}
+		i := sort.Search(len(n.children), f)
+		if i == len(n.children) || !bytes.HasPrefix(prefix, n.children[i].label) {
+			return nil, false
+		}
+		prefix = prefix[len(n.children[i].label):]
+		n = n.children[i]
 	}
-	return (*p.node).value, true
+	return n.value, true
 }
 
 func (t *Tree) Set(key, value []byte) {
