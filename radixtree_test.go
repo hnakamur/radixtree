@@ -277,38 +277,75 @@ func TestSet(t *testing.T) {
 }
 
 func TestPrettyPrint(t *testing.T) {
-	tr := Tree{root: node{
-		value: []byte{'0'},
-		children: []*node{
-			&node{
-				label: []byte("te"),
-				children: []*node{
-					&node{
-						label: []byte("am"),
-						value: []byte{'1'},
-					},
-					&node{
-						label: []byte("st"),
-						value: []byte{'2'},
+	testCases := []struct {
+		tree Tree
+		want string
+	}{
+		{
+			Tree{},
+			".\n",
+		},
+		{
+			Tree{
+				root: node{
+					value: []byte{'0'},
+				},
+			},
+			". \"0\"\n",
+		},
+		{
+			Tree{
+				root: node{
+					children: []*node{
+						&node{
+							label: []byte("tea"),
+							value: []byte{'1'},
+						},
 					},
 				},
 			},
-			&node{
-				label: []byte("water"),
-				value: []byte{'3'},
-			},
+			".\n" +
+				"`-- \"tea\" \"1\"\n",
 		},
-	}}
-	var buf bytes.Buffer
-	tr.PrettyPrint(&buf)
-	got := buf.String()
-	want := ". \"0\"\n" +
-		"|-- \"te\"\n" +
-		"|  |-- \"am\" \"1\"\n" +
-		"|  `-- \"st\" \"2\"\n" +
-		"`-- \"water\" \"3\"\n"
-	if got != want {
-		t.Errorf("unmatch result, got=\n%s, want=\n%s", got, want)
+		{
+			Tree{
+				root: node{
+					value: []byte{'0'},
+					children: []*node{
+						&node{
+							label: []byte("te"),
+							children: []*node{
+								&node{
+									label: []byte("am"),
+									value: []byte{'1'},
+								},
+								&node{
+									label: []byte("st"),
+									value: []byte{'2'},
+								},
+							},
+						},
+						&node{
+							label: []byte("water"),
+							value: []byte{'3'},
+						},
+					},
+				},
+			},
+			". \"0\"\n" +
+				"|-- \"te\"\n" +
+				"|  |-- \"am\" \"1\"\n" +
+				"|  `-- \"st\" \"2\"\n" +
+				"`-- \"water\" \"3\"\n",
+		},
+	}
+	for _, c := range testCases {
+		var buf bytes.Buffer
+		c.tree.PrettyPrint(&buf)
+		got := buf.String()
+		if got != c.want {
+			t.Errorf("unmatch result, got=\n%s, want=\n%s", got, c.want)
+		}
 	}
 }
 
