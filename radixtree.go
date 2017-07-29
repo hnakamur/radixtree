@@ -21,11 +21,7 @@ type node struct {
 
 var noValue = &struct{}{}
 
-func (n *node) hasValue() bool {
-	return n.value != noValue
-}
-
-func (t Tree) PrettyPrint(w io.Writer) {
+func (t *Tree) PrettyPrint(w io.Writer) {
 	buf := make([]byte, 0, 80)
 	buf = append(buf[:0], '.')
 	if t.root.hasValue() {
@@ -63,48 +59,6 @@ func (t Tree) PrettyPrint(w io.Writer) {
 		}
 	}
 	doPrint(&t.root, nil)
-}
-
-// edge represents a child node.
-// childIndex is the index of the child in parent's child nodes.
-type edge struct {
-	parent     *node
-	childIndex int
-}
-
-func (n edge) child() *node {
-	return n.parent.children[n.childIndex]
-}
-
-func (n *node) indexForPrefix(prefix []byte) int {
-	f := func(i int) bool {
-		label := n.children[i].label
-		if commonPrefixLength(label, prefix) > 0 {
-			return true
-		}
-		return bytes.Compare(label, prefix) >= 0
-	}
-	return sort.Search(len(n.children), f)
-}
-
-type path struct {
-	tree  *Tree
-	edges []edge
-	node  *node
-}
-
-func (p path) depth() int {
-	return len(p.edges)
-}
-
-func (p path) nodeAtDepth(depth int) *node {
-	if depth == 0 {
-		return &p.tree.root
-	}
-	if depth == len(p.edges)-1 {
-		return p.node
-	}
-	return p.edges[depth-1].child()
 }
 
 func (t *Tree) Get(key []byte) (value interface{}, exists bool) {
@@ -217,22 +171,19 @@ func (t *Tree) Delete(key []byte) (deleted bool) {
 	return true
 }
 
-func (t *Tree) pathForPrefix(prefix []byte) path {
-	n := &t.root
-	p := path{tree: t, node: n}
-	for len(prefix) > 0 {
-		i := n.indexForPrefix(prefix)
-		p.edges = append(p.edges, edge{parent: n, childIndex: i})
-		if i < len(n.children) && bytes.HasPrefix(prefix, n.children[i].label) {
-			p.node = n.children[i]
-		} else {
-			p.node = nil
-			break
+func (n *node) hasValue() bool {
+	return n.value != noValue
+}
+
+func (n *node) indexForPrefix(prefix []byte) int {
+	f := func(i int) bool {
+		label := n.children[i].label
+		if commonPrefixLength(label, prefix) > 0 {
+			return true
 		}
-		prefix = prefix[len(n.children[i].label):]
-		n = n.children[i]
+		return bytes.Compare(label, prefix) >= 0
 	}
-	return p
+	return sort.Search(len(n.children), f)
 }
 
 func commonPrefixLength(a, b []byte) int {
