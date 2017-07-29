@@ -1,10 +1,56 @@
 package radixtree
 
 import (
-	"log"
-	"os"
+	"bytes"
 	"testing"
 )
+
+func TestGet(t *testing.T) {
+	tr := Tree{root: node{
+		value: []byte{'0'},
+		children: []*node{
+			&node{
+				label: []byte("te"),
+				children: []*node{
+					&node{
+						label: []byte("am"),
+						value: []byte{'1'},
+					},
+					&node{
+						label: []byte("st"),
+						value: []byte{'2'},
+					},
+				},
+			},
+			&node{
+				label: []byte("water"),
+				value: []byte{'3'},
+			},
+		},
+	}}
+
+	testCases := []struct {
+		key    []byte
+		value  []byte
+		exists bool
+	}{
+		{[]byte(""), []byte{'0'}, true},
+		{[]byte("tea"), nil, false},
+		{[]byte("team"), []byte{'1'}, true},
+		{[]byte("tear"), nil, false},
+		{[]byte("test"), []byte{'2'}, true},
+		{[]byte("testable"), nil, false},
+		{[]byte("water"), []byte{'3'}, true},
+	}
+	for _, c := range testCases {
+		value, exists := tr.Get(c.key)
+		if exists != c.exists {
+			t.Errorf("exists unmatch, got=%v, want=%v", exists, c.exists)
+		} else if !bytes.Equal(value, c.value) {
+			t.Errorf("value unmatch, got=%s, want=%s", string(value), string(c.value))
+		}
+	}
+}
 
 func TestPrettyPrint(t *testing.T) {
 	tr := Tree{root: node{
@@ -29,19 +75,17 @@ func TestPrettyPrint(t *testing.T) {
 			},
 		},
 	}}
-	tr.PrettyPrint(os.Stdout)
-
-	doGet := func(key string) {
-		val, exist := tr.Get([]byte(key))
-		log.Printf("get key=%q, val=%q, exist=%v", key, string(val), exist)
+	var buf bytes.Buffer
+	tr.PrettyPrint(&buf)
+	got := buf.String()
+	want := ". \"0\"\n" +
+		"|-- \"te\"\n" +
+		"|  |-- \"am\" \"1\"\n" +
+		"|  `-- \"st\" \"2\"\n" +
+		"`-- \"water\" \"3\"\n"
+	if got != want {
+		t.Errorf("unmatch result, got=\n%s, want=\n%s", got, want)
 	}
-	//doGet("")
-	doGet("tea")
-	//doGet("team")
-	//doGet("test")
-	//doGet("tess")
-	//doGet("testable")
-	//doGet("water")
 }
 
 func TestCommonPrefixLength(t *testing.T) {

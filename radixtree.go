@@ -108,20 +108,22 @@ func (t *Tree) Get(key []byte) (value []byte, exists bool) {
 	return (*p.node).value, true
 }
 
+func (t *Tree) Set(key, value []byte) {
+	p := t.pathForPrefix(key)
+	log.Printf("Set, key=%s, p=%+v", string(key), p)
+}
+
 func (t *Tree) pathForPrefix(prefix []byte) path {
 	n := &t.root
 	p := path{tree: t, node: n}
 	for len(prefix) > 0 {
 		f := func(i int) bool {
-			log.Printf("i=%d, childLabel=%q, prefix=%q, fRes=%v", i, string(n.children[i].label), string(prefix), bytes.Compare(n.children[i].label, prefix) >= 0)
 			return bytes.Compare(n.children[i].label, prefix) >= 0
 		}
 		i := sort.Search(len(n.children), f)
 		if i > 0 && commonPrefixLength(prefix, n.children[i-1].label) > 0 {
-			log.Printf("decrement i since it has common prefix with previous chlidren")
 			i--
 		}
-		log.Printf("search result, prefix=%q, i=%d", prefix, i)
 		p.edges = append(p.edges, edge{parent: n, childIndex: i})
 		if i < len(n.children) && bytes.HasPrefix(prefix, n.children[i].label) {
 			p.node = n.children[i]
