@@ -79,6 +79,17 @@ func (n edge) child() *node {
 	return n.parent.children[n.childIndex]
 }
 
+func (n *node) indexForPrefix(prefix []byte) int {
+	f := func(i int) bool {
+		label := n.children[i].label
+		if commonPrefixLength(label, prefix) > 0 {
+			return true
+		}
+		return bytes.Compare(label, prefix) >= 0
+	}
+	return sort.Search(len(n.children), f)
+}
+
 type path struct {
 	tree  *Tree
 	edges []edge
@@ -103,14 +114,7 @@ func (t *Tree) Get(key []byte) (value []byte, exists bool) {
 	prefix := key
 	n := &t.root
 	for len(prefix) > 0 {
-		f := func(i int) bool {
-			label := n.children[i].label
-			if commonPrefixLength(label, prefix) > 0 {
-				return true
-			}
-			return bytes.Compare(label, prefix) >= 0
-		}
-		i := sort.Search(len(n.children), f)
+		i := n.indexForPrefix(prefix)
 		if i == len(n.children) || !bytes.HasPrefix(prefix, n.children[i].label) {
 			return nil, false
 		}
@@ -124,14 +128,7 @@ func (t *Tree) Set(key, value []byte) {
 	n := &t.root
 	prefix := key
 	for len(prefix) > 0 {
-		f := func(i int) bool {
-			label := n.children[i].label
-			if commonPrefixLength(label, prefix) > 0 {
-				return true
-			}
-			return bytes.Compare(label, prefix) >= 0
-		}
-		i := sort.Search(len(n.children), f)
+		i := n.indexForPrefix(prefix)
 		if i == len(n.children) {
 			n.children = append(n.children, &node{label: prefix, value: value})
 			return
@@ -195,14 +192,7 @@ func (t *Tree) pathForPrefix(prefix []byte) path {
 	n := &t.root
 	p := path{tree: t, node: n}
 	for len(prefix) > 0 {
-		f := func(i int) bool {
-			label := n.children[i].label
-			if commonPrefixLength(label, prefix) > 0 {
-				return true
-			}
-			return bytes.Compare(label, prefix) >= 0
-		}
-		i := sort.Search(len(n.children), f)
+		i := n.indexForPrefix(prefix)
 		p.edges = append(p.edges, edge{parent: n, childIndex: i})
 		if i < len(n.children) && bytes.HasPrefix(prefix, n.children[i].label) {
 			p.node = n.children[i]
