@@ -21,6 +21,14 @@ type node struct {
 
 var noValue = &struct{}{}
 
+func New() *Tree {
+	return &Tree{
+		root: node{
+			value: noValue,
+		},
+	}
+}
+
 func (t *Tree) PrettyPrint(w io.Writer) {
 	buf := make([]byte, 0, 80)
 	buf = append(buf[:0], '.')
@@ -77,6 +85,10 @@ func (t *Tree) Get(key []byte) (value interface{}, exists bool) {
 
 func (t *Tree) Set(key []byte, value interface{}) {
 	n := &t.root
+	if len(key) == 0 {
+		n.value = value
+		return
+	}
 	prefix := key
 	for len(prefix) > 0 {
 		i := n.indexForPrefix(prefix)
