@@ -178,30 +178,40 @@ func (t *Tree) Set(key, value []byte) {
 }
 
 func (t *Tree) Delete(key []byte) (deleted bool) {
-	p := t.pathForPrefix(key)
-	if p.node == nil {
-		return false
+	parent := &t.root
+	prefix := key
+	var n *node
+	var i int
+	for len(prefix) > 0 {
+		i = parent.indexForPrefix(prefix)
+		if i == len(parent.children) {
+			return false
+		}
+		n = parent.children[i]
+		l := commonPrefixLength(prefix, n.label)
+		if l == 0 {
+			return false
+		}
+		if l == len(prefix) {
+			break
+		}
+		prefix = prefix[len(n.label):]
+		parent = n
 	}
 
-	childCount := len(p.node.children)
+	childCount := len(n.children)
 	if childCount == 0 {
-		e := p.edges[len(p.edges)-1]
-		parent := e.parent
 		if len(parent.children) > 1 {
-			j := e.childIndex
-			parent.children = append(parent.children[:j], parent.children[j+1:]...)
+			parent.children = append(parent.children[:i], parent.children[i+1:]...)
 		} else {
 			parent.children = nil
 		}
 	} else if childCount == 1 {
-		child := p.node.children[0]
-		child.label = append(p.node.label, child.label...)
-		e := p.edges[len(p.edges)-1]
-		parent := e.parent
-		j := e.childIndex
-		parent.children[j] = child
+		child := n.children[0]
+		child.label = append(n.label, child.label...)
+		parent.children[i] = child
 	} else { // childCount > 1
-		p.node.value = nil
+		n.value = nil
 	}
 	return true
 }
