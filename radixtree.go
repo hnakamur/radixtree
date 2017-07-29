@@ -211,6 +211,9 @@ func (t *Tree) Delete(key []byte) (deleted bool) {
 		child.label = append(n.label, child.label...)
 		parent.children[i] = child
 	} else { // childCount > 1
+		if n.value == nil {
+			return false
+		}
 		n.value = nil
 	}
 	return true

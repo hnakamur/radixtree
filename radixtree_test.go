@@ -439,6 +439,33 @@ func TestDelete(t *testing.T) {
 				"`-- \"tea\" \"1\"\n" +
 				"   `-- \"m\" \"2\"\n",
 		},
+		{
+			tree: Tree{
+				root: node{
+					children: []*node{
+						&node{
+							label: []byte("tea"),
+							children: []*node{
+								&node{
+									label: []byte("m"),
+									value: []byte{'2'},
+								},
+								&node{
+									label: []byte("r"),
+									value: []byte{'3'},
+								},
+							},
+						},
+					},
+				},
+			},
+			key:     []byte("tea"),
+			deleted: false,
+			result: ".\n" +
+				"`-- \"tea\"\n" +
+				"   |-- \"m\" \"2\"\n" +
+				"   `-- \"r\" \"3\"\n",
+		},
 	}
 	for i, c := range testCases {
 		deleted := c.tree.Delete(c.key)
