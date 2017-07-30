@@ -296,6 +296,51 @@ func TestDelete(t *testing.T) {
 				t := radixtree.New()
 				t.Set([]byte("team"), 1)
 				t.Set([]byte("tear"), 2)
+				t.Set([]byte("test"), 3)
+				return t
+			}(),
+			key:     []byte("test"),
+			deleted: true,
+			result: ".\n" +
+				"`-- \"tea\"\n" +
+				"   |-- \"m\" 1 int\n" +
+				"   `-- \"r\" 2 int\n",
+		},
+		{
+			tree: func() *radixtree.Tree {
+				t := radixtree.New()
+				t.Set([]byte("team"), 1)
+				t.Set([]byte("test"), 2)
+				t.Set([]byte("tester"), 3)
+				return t
+			}(),
+			key:     []byte("test"),
+			deleted: true,
+			result: ".\n" +
+				"`-- \"te\"\n" +
+				"   |-- \"am\" 1 int\n" +
+				"   `-- \"ster\" 3 int\n",
+		},
+		{
+			tree: func() *radixtree.Tree {
+				t := radixtree.New()
+				t.Set([]byte("team"), 1)
+				t.Set([]byte("technology"), 2)
+				t.Set([]byte("test"), 3)
+				return t
+			}(),
+			key:     []byte("test"),
+			deleted: true,
+			result: ".\n" +
+				"`-- \"te\"\n" +
+				"   |-- \"am\" 1 int\n" +
+				"   `-- \"chnology\" 2 int\n",
+		},
+		{
+			tree: func() *radixtree.Tree {
+				t := radixtree.New()
+				t.Set([]byte("team"), 1)
+				t.Set([]byte("tear"), 2)
 				return t
 			}(),
 			key:     []byte("tea"),

@@ -162,17 +162,35 @@ func (t *Tree) Delete(key []byte) (deleted bool) {
 	}
 
 	childCount := len(n.children)
-	if childCount == 0 {
-		if len(parent.children) > 1 {
-			parent.children = append(parent.children[:i], parent.children[i+1:]...)
+	switch childCount {
+	case 0:
+		if parent.hasValue() || parent == &t.root {
+			if len(parent.children) > 1 {
+				parent.children = append(parent.children[:i], parent.children[i+1:]...)
+			} else {
+				parent.children = nil
+			}
 		} else {
-			parent.children = nil
+			parentChildCount := len(parent.children)
+			if parentChildCount > 2 {
+				parent.children = append(parent.children[:i], parent.children[i+1:]...)
+			} else if parentChildCount == 2 {
+				sibling := parent.children[1-i]
+				*parent = node{
+					label:    append(parent.label, sibling.label...),
+					value:    sibling.value,
+					children: sibling.children,
+				}
+			}
 		}
-	} else if childCount == 1 {
+	case 1:
 		child := n.children[0]
-		child.label = append(n.label, child.label...)
-		parent.children[i] = child
-	} else { // childCount > 1
+		parent.children[i] = &node{
+			label:    append(n.label, child.label...),
+			value:    child.value,
+			children: child.children,
+		}
+	default: // childCount > 1
 		if !n.hasValue() {
 			return false
 		}
@@ -202,21 +220,23 @@ func (t *Tree) DeleteSubtree(prefix []byte) (deleted bool) {
 		parent = n
 	}
 
-	siblingCount := len(parent.children)
+	parentChildCount := len(parent.children)
 	if parent.hasValue() || parent == &t.root {
-		if siblingCount > 1 {
+		if parentChildCount > 1 {
 			parent.children = append(parent.children[:i], parent.children[i+1:]...)
 		} else {
 			parent.children = nil
 		}
 	} else {
-		if siblingCount > 2 {
+		if parentChildCount > 2 {
 			parent.children = append(parent.children[:i], parent.children[i+1:]...)
-		} else if siblingCount == 2 {
+		} else if parentChildCount == 2 {
 			sibling := parent.children[1-i]
-			parent.label = append(parent.label, sibling.label...)
-			parent.value = sibling.value
-			parent.children = sibling.children
+			*parent = node{
+				label:    append(parent.label, sibling.label...),
+				value:    sibling.value,
+				children: sibling.children,
+			}
 		} else {
 			parent.children = nil
 		}
