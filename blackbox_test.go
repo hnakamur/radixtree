@@ -1,7 +1,6 @@
 package radixtree_test
 
 import (
-	"bytes"
 	"testing"
 
 	"bitbucket.org/hnakamur/radixtree"
@@ -147,9 +146,7 @@ func TestSet(t *testing.T) {
 		},
 	}
 	for i, c := range testCases {
-		var buf bytes.Buffer
-		c.tree.PrettyPrint(&buf)
-		got := buf.String()
+		got := c.tree.String()
 		if got != c.want {
 			t.Errorf("unmatch result, caseIndex=%d, got=\n%s, want=\n%s", i, got, c.want)
 		}
@@ -314,9 +311,7 @@ func TestDelete(t *testing.T) {
 		if deleted != c.deleted {
 			t.Errorf("deleted unmatch, caseIndex=%d, got=%v, want=%v", i, deleted, c.deleted)
 		}
-		var buf bytes.Buffer
-		c.tree.PrettyPrint(&buf)
-		got := buf.String()
+		got := c.tree.String()
 		if got != c.result {
 			t.Errorf("result unmatch, caseIndex=%d, got=\n%s, want=\n%s", i, got, c.result)
 		}

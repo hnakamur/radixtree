@@ -1,11 +1,10 @@
 package radixtree
 
 import (
-	"bytes"
 	"testing"
 )
 
-func TestPrettyPrint(t *testing.T) {
+func TestString(t *testing.T) {
 	testCases := []struct {
 		tree Tree
 		want string
@@ -75,9 +74,7 @@ func TestPrettyPrint(t *testing.T) {
 		},
 	}
 	for i, c := range testCases {
-		var buf bytes.Buffer
-		c.tree.PrettyPrint(&buf)
-		got := buf.String()
+		got := c.tree.String()
 		if got != c.want {
 			t.Errorf("unmatch result, caseIndex=%d, got=\n%s, want=\n%s", i, got, c.want)
 		}

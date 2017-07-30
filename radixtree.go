@@ -3,7 +3,6 @@ package radixtree
 import (
 	"bytes"
 	"fmt"
-	"io"
 	"sort"
 	"strconv"
 )
@@ -29,20 +28,19 @@ func New() *Tree {
 	}
 }
 
-func (t *Tree) PrettyPrint(w io.Writer) {
-	buf := make([]byte, 0, 80)
-	buf = append(buf[:0], '.')
+func (t *Tree) String() string {
+	var buf []byte
+	buf = append(buf, '.')
 	if t.root.hasValue() {
 		buf = append(buf, fmt.Sprintf(" %+v %T", t.root.value, t.root.value)...)
 	}
 	buf = append(buf, '\n')
-	w.Write(buf)
 
 	var doPrint func(p *node, leading []byte)
 	doPrint = func(p *node, leading []byte) {
 		for i := range p.children {
 			n := p.children[i]
-			buf = append(buf[:0], leading...)
+			buf = append(buf, leading...)
 			if i < len(p.children)-1 {
 				buf = append(buf, '|')
 			} else {
@@ -54,7 +52,6 @@ func (t *Tree) PrettyPrint(w io.Writer) {
 				buf = append(buf, fmt.Sprintf(" %+v %T", n.value, n.value)...)
 			}
 			buf = append(buf, '\n')
-			w.Write(buf)
 			if len(n.children) > 0 {
 				var leading2 []byte
 				if i < len(p.children)-1 {
@@ -67,6 +64,7 @@ func (t *Tree) PrettyPrint(w io.Writer) {
 		}
 	}
 	doPrint(&t.root, nil)
+	return string(buf)
 }
 
 func (t *Tree) Get(key []byte) (value interface{}, exists bool) {
