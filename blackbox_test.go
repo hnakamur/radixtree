@@ -317,3 +317,182 @@ func TestDelete(t *testing.T) {
 		}
 	}
 }
+
+func TestDeleteSubtree(t *testing.T) {
+	testCases := []struct {
+		tree    *radixtree.Tree
+		prefix  []byte
+		deleted bool
+		result  string
+	}{
+		{
+			tree: func() *radixtree.Tree {
+				return radixtree.New()
+			}(),
+			prefix:  []byte("tea"),
+			deleted: false,
+			result:  ".\n",
+		},
+		{
+			tree: func() *radixtree.Tree {
+				t := radixtree.New()
+				t.Set([]byte("tea"), 1)
+				return t
+			}(),
+			prefix:  []byte("water"),
+			deleted: false,
+			result: ".\n" +
+				"`-- \"tea\" 1 int\n",
+		},
+		{
+			tree: func() *radixtree.Tree {
+				t := radixtree.New()
+				t.Set([]byte("tea"), 1)
+				return t
+			}(),
+			prefix:  []byte("tea"),
+			deleted: true,
+			result:  ".\n",
+		},
+		{
+			tree: func() *radixtree.Tree {
+				t := radixtree.New()
+				t.Set([]byte("tea"), 1)
+				return t
+			}(),
+			prefix:  []byte("te"),
+			deleted: true,
+			result:  ".\n",
+		},
+		{
+			tree: func() *radixtree.Tree {
+				t := radixtree.New()
+				t.Set([]byte("tea"), 1)
+				t.Set([]byte("water"), 2)
+				return t
+			}(),
+			prefix:  []byte("tea"),
+			deleted: true,
+			result: ".\n" +
+				"`-- \"water\" 2 int\n",
+		},
+		{
+			tree: func() *radixtree.Tree {
+				t := radixtree.New()
+				t.Set([]byte("tea"), 1)
+				t.Set([]byte("team"), 2)
+				return t
+			}(),
+			prefix:  []byte("team"),
+			deleted: true,
+			result: ".\n" +
+				"`-- \"tea\" 1 int\n",
+		},
+		{
+			tree: func() *radixtree.Tree {
+				t := radixtree.New()
+				t.Set([]byte("tea"), 1)
+				t.Set([]byte("team"), 2)
+				return t
+			}(),
+			prefix:  []byte("tea"),
+			deleted: true,
+			result:  ".\n",
+		},
+		{
+			tree: func() *radixtree.Tree {
+				t := radixtree.New()
+				t.Set([]byte("tea"), 1)
+				t.Set([]byte("team"), 2)
+				t.Set([]byte("tear"), 3)
+				return t
+			}(),
+			prefix:  []byte("tea"),
+			deleted: true,
+			result:  ".\n",
+		},
+		{
+			tree: func() *radixtree.Tree {
+				t := radixtree.New()
+				t.Set([]byte("tea"), 1)
+				t.Set([]byte("team"), 2)
+				t.Set([]byte("tear"), 3)
+				return t
+			}(),
+			prefix:  []byte("tear"),
+			deleted: true,
+			result: ".\n" +
+				"`-- \"tea\" 1 int\n" +
+				"   `-- \"m\" 2 int\n",
+		},
+		{
+			tree: func() *radixtree.Tree {
+				t := radixtree.New()
+				t.Set([]byte("team"), 1)
+				t.Set([]byte("tear"), 2)
+				return t
+			}(),
+			prefix:  []byte("tea"),
+			deleted: true,
+			result:  ".\n",
+		},
+		{
+			tree: func() *radixtree.Tree {
+				t := radixtree.New()
+				t.Set([]byte("tea"), 1)
+				t.Set([]byte("team"), 2)
+				t.Set([]byte("tear"), 3)
+				t.Set([]byte("teamwork"), 4)
+				return t
+			}(),
+			prefix:  []byte("team"),
+			deleted: true,
+			result: ".\n" +
+				"`-- \"tea\" 1 int\n" +
+				"   `-- \"r\" 3 int\n",
+		},
+		{
+			tree: func() *radixtree.Tree {
+				t := radixtree.New()
+				t.Set([]byte("tea"), 1)
+				t.Set([]byte("team"), 2)
+				t.Set([]byte("tear"), 3)
+				t.Set([]byte("teamwork"), 4)
+				t.Set([]byte("test"), 5)
+				return t
+			}(),
+			prefix:  []byte("tea"),
+			deleted: true,
+			result: ".\n" +
+				"`-- \"test\" 5 int\n",
+		},
+		{
+			tree: func() *radixtree.Tree {
+				t := radixtree.New()
+				t.Set([]byte("tea"), 1)
+				t.Set([]byte("team"), 2)
+				t.Set([]byte("tear"), 3)
+				t.Set([]byte("teamwork"), 4)
+				t.Set([]byte("test"), 5)
+				return t
+			}(),
+			prefix:  []byte("test"),
+			deleted: true,
+			result: ".\n" +
+				"`-- \"tea\" 1 int\n" +
+				"   |-- \"m\" 2 int\n" +
+				"   |  `-- \"work\" 4 int\n" +
+				"   `-- \"r\" 3 int\n",
+		},
+	}
+	for i, c := range testCases {
+		deleted := c.tree.DeleteSubtree(c.prefix)
+		if deleted != c.deleted {
+			t.Errorf("deleted unmatch, caseIndex=%d, got=%v, want=%v", i, deleted, c.deleted)
+		}
+		got := c.tree.String()
+		if got != c.result {
+			t.Errorf("result unmatch, caseIndex=%d, got=\n%s, want=\n%s", i, got, c.result)
+		}
+	}
+}

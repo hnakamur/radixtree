@@ -181,6 +181,49 @@ func (t *Tree) Delete(key []byte) (deleted bool) {
 	return true
 }
 
+func (t *Tree) DeleteSubtree(prefix []byte) (deleted bool) {
+	parent := &t.root
+	var n *node
+	var i, l int
+	for len(prefix) > 0 {
+		i = parent.indexForPrefix(prefix)
+		if i == len(parent.children) {
+			return false
+		}
+		n = parent.children[i]
+		l = commonPrefixLength(prefix, n.label)
+		if l == 0 {
+			return false
+		}
+		if l == len(prefix) {
+			break
+		}
+		prefix = prefix[len(n.label):]
+		parent = n
+	}
+
+	siblingCount := len(parent.children)
+	if parent.hasValue() || parent == &t.root {
+		if siblingCount > 1 {
+			parent.children = append(parent.children[:i], parent.children[i+1:]...)
+		} else {
+			parent.children = nil
+		}
+	} else {
+		if siblingCount > 2 {
+			parent.children = append(parent.children[:i], parent.children[i+1:]...)
+		} else if siblingCount == 2 {
+			sibling := parent.children[1-i]
+			parent.label = append(parent.label, sibling.label...)
+			parent.value = sibling.value
+			parent.children = sibling.children
+		} else {
+			parent.children = nil
+		}
+	}
+	return true
+}
+
 func (n *node) hasValue() bool {
 	return n.value != noValue
 }
@@ -194,6 +237,45 @@ func (n *node) indexForPrefix(prefix []byte) int {
 		return bytes.Compare(label, prefix) >= 0
 	}
 	return sort.Search(len(n.children), f)
+}
+
+func (n *node) String() string {
+	var buf []byte
+	buf = strconv.AppendQuote(buf, string(n.label))
+	if n.hasValue() {
+		buf = append(buf, fmt.Sprintf(" %+v %T", n.value, n.value)...)
+	}
+	buf = append(buf, '\n')
+
+	var doPrint func(p *node, leading []byte)
+	doPrint = func(p *node, leading []byte) {
+		for i := range p.children {
+			n := p.children[i]
+			buf = append(buf, leading...)
+			if i < len(p.children)-1 {
+				buf = append(buf, '|')
+			} else {
+				buf = append(buf, '`')
+			}
+			buf = append(buf, "-- "...)
+			buf = strconv.AppendQuote(buf, string(n.label))
+			if n.hasValue() {
+				buf = append(buf, fmt.Sprintf(" %+v %T", n.value, n.value)...)
+			}
+			buf = append(buf, '\n')
+			if len(n.children) > 0 {
+				var leading2 []byte
+				if i < len(p.children)-1 {
+					leading2 = append(leading, "|  "...)
+				} else {
+					leading2 = append(leading, "   "...)
+				}
+				doPrint(n, leading2)
+			}
+		}
+	}
+	doPrint(n, nil)
+	return string(buf)
 }
 
 func commonPrefixLength(a, b []byte) int {
