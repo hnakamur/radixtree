@@ -3,7 +3,7 @@ package radixtree_test
 import (
 	"testing"
 
-	"bitbucket.org/hnakamur/radixtree"
+	"github.com/hnakamur/radixtree"
 )
 
 func TestSet(t *testing.T) {
