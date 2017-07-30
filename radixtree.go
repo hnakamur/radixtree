@@ -1,3 +1,16 @@
+// Package radixtree provides a simple and straightforward implementation
+// for radixtree.
+//
+// This implementation uses the binary search to find the index in children
+// at each level of nodes in a tree. So it will be slower than map when
+// the level becomes large.
+//
+// The advantage of the radixtree implementation is the cost of deleting
+// a subtree for a prefix is cheap. It is roughly same as deleting a single
+// key.
+//
+// This implementation is not goroutine safe, so you need to use a lock in your
+// code when multiple goroutines concurrently access the same tree.
 package radixtree
 
 import (
@@ -7,6 +20,7 @@ import (
 	"strconv"
 )
 
+// Tree is a radix tree.
 type Tree struct {
 	root node
 }
@@ -20,6 +34,7 @@ type node struct {
 
 var noValue = &struct{}{}
 
+// New returns a new radix tree.
 func New() *Tree {
 	return &Tree{
 		root: node{
@@ -28,6 +43,7 @@ func New() *Tree {
 	}
 }
 
+// String returns the ASCII art representation of the radix tree.
 func (t *Tree) String() string {
 	var buf []byte
 	buf = append(buf, '.')
@@ -67,6 +83,7 @@ func (t *Tree) String() string {
 	return string(buf)
 }
 
+// Get returns the value for the key.
 func (t *Tree) Get(key []byte) (value interface{}, exists bool) {
 	prefix := key
 	n := &t.root
@@ -81,6 +98,11 @@ func (t *Tree) Get(key []byte) (value interface{}, exists bool) {
 	return n.value, true
 }
 
+// Set sets the value for the key in the radix tree. You can
+// use nil for values. You can set the value for the root node
+// with passing nil or an empty byte slice to key.
+// You are free to modify the backing store of the key after
+// calling Set.
 func (t *Tree) Set(key []byte, value interface{}) {
 	n := &t.root
 	if len(key) == 0 {
@@ -153,6 +175,7 @@ func newNode(label []byte, value interface{}, children []*node) *node {
 	return n
 }
 
+// Delete deletes the specified key in the radix tree.
 func (t *Tree) Delete(key []byte) (deleted bool) {
 	parent := &t.root
 	prefix := key
@@ -213,6 +236,8 @@ func (t *Tree) Delete(key []byte) (deleted bool) {
 	return true
 }
 
+// DeleteSubtree deletes a subtree which has the specified prefix
+// in the radix tree.
 func (t *Tree) DeleteSubtree(prefix []byte) (deleted bool) {
 	parent := &t.root
 	var n *node
