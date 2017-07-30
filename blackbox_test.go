@@ -24,7 +24,7 @@ func TestSet(t *testing.T) {
 				t.Set([]byte{}, 0)
 				return t
 			}(),
-			want: ". 0\n",
+			want: ". 0 int\n",
 		},
 		{
 			tree: func() *radixtree.Tree {
@@ -33,7 +33,7 @@ func TestSet(t *testing.T) {
 				return t
 			}(),
 			want: ".\n" +
-				"`-- \"tea\" 1\n",
+				"`-- \"tea\" 1 int\n",
 		},
 		{
 			tree: func() *radixtree.Tree {
@@ -43,7 +43,7 @@ func TestSet(t *testing.T) {
 				return t
 			}(),
 			want: ".\n" +
-				"`-- \"tea\" 2\n",
+				"`-- \"tea\" 2 int\n",
 		},
 		{
 			tree: func() *radixtree.Tree {
@@ -53,8 +53,8 @@ func TestSet(t *testing.T) {
 				return t
 			}(),
 			want: ".\n" +
-				"`-- \"tea\" 1\n" +
-				"   `-- \"m\" 2\n",
+				"`-- \"tea\" 1 int\n" +
+				"   `-- \"m\" 2 int\n",
 		},
 		{
 			tree: func() *radixtree.Tree {
@@ -64,8 +64,8 @@ func TestSet(t *testing.T) {
 				return t
 			}(),
 			want: ".\n" +
-				"`-- \"tea\" 2\n" +
-				"   `-- \"m\" 1\n",
+				"`-- \"tea\" 2 int\n" +
+				"   `-- \"m\" 1 int\n",
 		},
 		{
 			tree: func() *radixtree.Tree {
@@ -76,8 +76,8 @@ func TestSet(t *testing.T) {
 			}(),
 			want: ".\n" +
 				"`-- \"tea\"\n" +
-				"   |-- \"m\" 1\n" +
-				"   `-- \"r\" 2\n",
+				"   |-- \"m\" 1 int\n" +
+				"   `-- \"r\" 2 int\n",
 		},
 		{
 			tree: func() *radixtree.Tree {
@@ -88,8 +88,8 @@ func TestSet(t *testing.T) {
 			}(),
 			want: ".\n" +
 				"`-- \"tea\"\n" +
-				"   |-- \"m\" 2\n" +
-				"   `-- \"r\" 1\n",
+				"   |-- \"m\" 2 int\n" +
+				"   `-- \"r\" 1 int\n",
 		},
 		{
 			tree: func() *radixtree.Tree {
@@ -100,9 +100,9 @@ func TestSet(t *testing.T) {
 				return t
 			}(),
 			want: ".\n" +
-				"`-- \"tea\" 2\n" +
-				"   `-- \"m\" 1\n" +
-				"      `-- \"work\" 3\n",
+				"`-- \"tea\" 2 int\n" +
+				"   `-- \"m\" 1 int\n" +
+				"      `-- \"work\" 3 int\n",
 		},
 		{
 			tree: func() *radixtree.Tree {
@@ -114,10 +114,10 @@ func TestSet(t *testing.T) {
 				return t
 			}(),
 			want: ".\n" +
-				"`-- \"tea\" 1\n" +
-				"   `-- \"m\" 2\n" +
-				"      |-- \"mate\" 4\n" +
-				"      `-- \"work\" 3\n",
+				"`-- \"tea\" 1 int\n" +
+				"   `-- \"m\" 2 int\n" +
+				"      |-- \"mate\" 4 int\n" +
+				"      `-- \"work\" 3 int\n",
 		},
 		{
 			tree: func() *radixtree.Tree {
@@ -127,8 +127,8 @@ func TestSet(t *testing.T) {
 				return t
 			}(),
 			want: ".\n" +
-				"|-- \"tea\" 1\n" +
-				"`-- \"water\" 2\n",
+				"|-- \"tea\" 1 int\n" +
+				"`-- \"water\" 2 int\n",
 		},
 		{
 			tree: func() *radixtree.Tree {
@@ -139,11 +139,11 @@ func TestSet(t *testing.T) {
 				t.Set([]byte("water"), 3)
 				return t
 			}(),
-			want: ". 0\n" +
+			want: ". 0 int\n" +
 				"|-- \"te\"\n" +
-				"|  |-- \"am\" 1\n" +
-				"|  `-- \"st\" 2\n" +
-				"`-- \"water\" 3\n",
+				"|  |-- \"am\" 1 int\n" +
+				"|  `-- \"st\" 2 int\n" +
+				"`-- \"water\" 3 int\n",
 		},
 	}
 	for i, c := range testCases {
@@ -217,7 +217,7 @@ func TestDelete(t *testing.T) {
 			key:     []byte("water"),
 			deleted: false,
 			result: ".\n" +
-				"`-- \"tea\" 1\n",
+				"`-- \"tea\" 1 int\n",
 		},
 		{
 			tree: func() *radixtree.Tree {
@@ -239,7 +239,7 @@ func TestDelete(t *testing.T) {
 			key:     []byte("tea"),
 			deleted: true,
 			result: ".\n" +
-				"`-- \"water\" 2\n",
+				"`-- \"water\" 2 int\n",
 		},
 		{
 			tree: func() *radixtree.Tree {
@@ -251,7 +251,7 @@ func TestDelete(t *testing.T) {
 			key:     []byte("team"),
 			deleted: true,
 			result: ".\n" +
-				"`-- \"tea\" 1\n",
+				"`-- \"tea\" 1 int\n",
 		},
 		{
 			tree: func() *radixtree.Tree {
@@ -263,7 +263,7 @@ func TestDelete(t *testing.T) {
 			key:     []byte("tea"),
 			deleted: true,
 			result: ".\n" +
-				"`-- \"team\" 2\n",
+				"`-- \"team\" 2 int\n",
 		},
 		{
 			tree: func() *radixtree.Tree {
@@ -277,8 +277,8 @@ func TestDelete(t *testing.T) {
 			deleted: true,
 			result: ".\n" +
 				"`-- \"tea\"\n" +
-				"   |-- \"m\" 2\n" +
-				"   `-- \"r\" 3\n",
+				"   |-- \"m\" 2 int\n" +
+				"   `-- \"r\" 3 int\n",
 		},
 		{
 			tree: func() *radixtree.Tree {
@@ -291,8 +291,8 @@ func TestDelete(t *testing.T) {
 			key:     []byte("tear"),
 			deleted: true,
 			result: ".\n" +
-				"`-- \"tea\" 1\n" +
-				"   `-- \"m\" 2\n",
+				"`-- \"tea\" 1 int\n" +
+				"   `-- \"m\" 2 int\n",
 		},
 		{
 			tree: func() *radixtree.Tree {
@@ -305,8 +305,8 @@ func TestDelete(t *testing.T) {
 			deleted: false,
 			result: ".\n" +
 				"`-- \"tea\"\n" +
-				"   |-- \"m\" 1\n" +
-				"   `-- \"r\" 2\n",
+				"   |-- \"m\" 1 int\n" +
+				"   `-- \"r\" 2 int\n",
 		},
 	}
 	for i, c := range testCases {

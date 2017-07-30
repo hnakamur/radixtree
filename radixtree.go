@@ -33,7 +33,7 @@ func (t *Tree) PrettyPrint(w io.Writer) {
 	buf := make([]byte, 0, 80)
 	buf = append(buf[:0], '.')
 	if t.root.hasValue() {
-		buf = append(buf, fmt.Sprintf(" %+v", t.root.value)...)
+		buf = append(buf, fmt.Sprintf(" %+v %T", t.root.value, t.root.value)...)
 	}
 	buf = append(buf, '\n')
 	w.Write(buf)
@@ -51,7 +51,7 @@ func (t *Tree) PrettyPrint(w io.Writer) {
 			buf = append(buf, "-- "...)
 			buf = strconv.AppendQuote(buf, string(n.label))
 			if n.hasValue() {
-				buf = append(buf, fmt.Sprintf(" %+v", n.value)...)
+				buf = append(buf, fmt.Sprintf(" %+v %T", n.value, n.value)...)
 			}
 			buf = append(buf, '\n')
 			w.Write(buf)

@@ -24,7 +24,7 @@ func TestPrettyPrint(t *testing.T) {
 					value: "0",
 				},
 			},
-			". 0\n",
+			". 0 string\n",
 		},
 		{
 			Tree{
@@ -39,7 +39,7 @@ func TestPrettyPrint(t *testing.T) {
 				},
 			},
 			".\n" +
-				"`-- \"tea\" 1\n",
+				"`-- \"tea\" 1 string\n",
 		},
 		{
 			Tree{
@@ -67,11 +67,11 @@ func TestPrettyPrint(t *testing.T) {
 					},
 				},
 			},
-			". 0\n" +
+			". 0 int\n" +
 				"|-- \"te\"\n" +
-				"|  |-- \"am\" 1\n" +
-				"|  `-- \"st\" 2\n" +
-				"`-- \"water\" 3\n",
+				"|  |-- \"am\" 1 int\n" +
+				"|  `-- \"st\" 2 int\n" +
+				"`-- \"water\" 3 int\n",
 		},
 	}
 	for i, c := range testCases {
