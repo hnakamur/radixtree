@@ -91,7 +91,7 @@ func (t *Tree) Set(key []byte, value interface{}) {
 	for len(prefix) > 0 {
 		i := n.indexForPrefix(prefix)
 		if i == len(n.children) {
-			n.children = append(n.children, &node{label: prefix, value: value})
+			n.children = append(n.children, newNode(prefix, value, nil))
 			return
 		}
 		child := n.children[i]
@@ -101,7 +101,7 @@ func (t *Tree) Set(key []byte, value interface{}) {
 			// Insert new node at i'th children
 			n.children = append(n.children, nil)
 			copy(n.children[i+1:], n.children[i:])
-			n.children[i] = &node{label: prefix, value: value}
+			n.children[i] = newNode(prefix, value, nil)
 			return
 		}
 		if l < len(prefix) {
@@ -110,25 +110,17 @@ func (t *Tree) Set(key []byte, value interface{}) {
 				child.label = childLabel[l:]
 				var children []*node
 				if bytes.Compare(myRestLabel, child.label) < 0 {
-					children = []*node{&node{label: myRestLabel, value: value}, child}
+					children = []*node{newNode(myRestLabel, value, nil), child}
 				} else {
-					children = []*node{child, &node{label: myRestLabel, value: value}}
+					children = []*node{child, newNode(myRestLabel, value, nil)}
 				}
-				n.children[i] = &node{
-					label:    prefix[:l],
-					value:    noValue,
-					children: children,
-				}
+				n.children[i] = newNode(prefix[:l], noValue, children)
 				return
 			}
 		} else { // l == len(prefix)
 			if l < len(childLabel) {
 				child.label = childLabel[l:]
-				n.children[i] = &node{
-					label:    prefix,
-					value:    value,
-					children: []*node{child},
-				}
+				n.children[i] = newNode(prefix, value, []*node{child})
 			} else { // l == len(childLabel)
 				n.children[i].value = value
 			}
@@ -137,6 +129,28 @@ func (t *Tree) Set(key []byte, value interface{}) {
 		prefix = prefix[len(childLabel):]
 		n = child
 	}
+}
+
+// newNode creates a new node. The label will copied to a newly allocated
+// backing store, so users are free to modify label after calling this
+// function.
+//
+// newNode is supposed to be called only from Set where labels is passed
+// by users, so it's safe to clone labels.
+//
+// In other functions like Delete and DeleteSubtree, We don't use newNode
+// but use node literals to create a node so that we can avoid unecessary
+// memory allocations.
+func newNode(label []byte, value interface{}, children []*node) *node {
+	n := &node{
+		value:    value,
+		children: children,
+	}
+	if len(label) > 0 {
+		n.label = make([]byte, len(label))
+		copy(n.label, label)
+	}
+	return n
 }
 
 func (t *Tree) Delete(key []byte) (deleted bool) {
